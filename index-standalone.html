@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>城市时间与天气查询</title>
+  <style>
+:root{--bg-dark:#0f172a;--bg-card:#1e293b;--accent:#38bdf8;--text:#f1f5f9;--text-muted:#94a3b8;--border:#334155;--radius:12px;--shadow:0 4px 20px rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg-dark);color:var(--text);min-height:100vh;line-height:1.5}
+.app{max-width:720px;margin:0 auto;padding:2rem 1.5rem}
+.header{text-align:center;margin-bottom:2rem}
+.header h1{font-size:1.75rem;font-weight:700;letter-spacing:-.02em;background:linear-gradient(135deg,var(--accent),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--text-muted);font-size:.9rem;margin-top:.5rem}
+.search-section{margin-bottom:2rem}
+.search-box{position:relative}
+#city-input{width:100%;padding:.875rem 1rem;font-size:1rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-card);color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s}
+#city-input::placeholder{color:var(--text-muted)}
+#city-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,.2)}
+.hint{font-size:.8rem;color:var(--text-muted);margin-top:.5rem}
+.dropdown{position:absolute;top:100%;left:0;right:0;margin-top:4px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);max-height:240px;overflow-y:auto;list-style:none;z-index:100;box-shadow:var(--shadow)}
+.dropdown:empty,.dropdown[aria-hidden="true"]{display:none}
+.dropdown li{padding:.75rem 1rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;display:flex;justify-content:space-between;align-items:center;gap:.5rem}
+.dropdown li:last-child{border-bottom:none}
+.dropdown li:hover,.dropdown li[aria-selected="true"]{background:rgba(56,189,248,.15)}
+.dropdown .city-name{font-weight:500}
+.dropdown .city-detail{font-size:.8rem;color:var(--text-muted)}
+.results{display:flex;flex-direction:column;gap:1.25rem}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow)}
+.card h2{font-size:.95rem;font-weight:600;color:var(--text-muted);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em}
+.time-display{font-size:2rem;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.timezone-info{font-size:.85rem;color:var(--text-muted);margin-top:.5rem}
+.current-weather{display:grid;grid-template-columns:auto 1fr;gap:1rem;align-items:center}
+.current-weather .temp-main{font-size:2.5rem;font-weight:700;color:var(--accent)}
+.current-weather .temp-main sup{font-size:1rem;font-weight:500}
+.current-weather .desc{font-size:1rem;color:var(--text-muted);margin-top:.25rem}
+.current-weather .details{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem 1.5rem;font-size:.9rem;color:var(--text-muted)}
+.forecast-list{display:grid;gap:.75rem}
+.forecast-item{display:grid;grid-template-columns:1fr auto auto;gap:1rem;align-items:center;padding:.75rem 0;border-bottom:1px solid var(--border)}
+.forecast-item:last-child{border-bottom:none}
+.forecast-item .day{font-weight:500}
+.forecast-item .date{font-size:.8rem;color:var(--text-muted)}
+.forecast-item .temps{font-variant-numeric:tabular-nums}
+.forecast-item .temp-max{color:var(--accent);font-weight:600}
+.forecast-item .temp-min{color:var(--text-muted);margin-left:.25rem}
+.weather-desc{font-size:.85rem;color:var(--text-muted);min-width:4em;text-align:right}
+.loading,.error{text-align:center;padding:2rem}
+.loading{color:var(--text-muted)}
+.loading .spinner{display:inline-block;width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:.75rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error{color:#f87171;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:var(--radius)}
+@media (max-width:480px){.app{padding:1.25rem 1rem}.time-display{font-size:1.5rem}.current-weather .temp-main{font-size:2rem}.forecast-item{grid-template-columns:1fr auto;font-size:.9rem}.forecast-item .weather-desc{grid-column:1;text-align:left}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>城市时间与天气</h1>
+      <p class="subtitle">输入城市名称，查看当地时间和未来一周天气</p>
+    </header>
+
+    <section class="search-section">
+      <div class="search-box">
+        <input type="text" id="city-input" placeholder="输入城市名称...（如：北京、上海、Tokyo）" autocomplete="off">
+        <ul id="city-dropdown" class="dropdown" aria-hidden="true"></ul>
+      </div>
+      <p id="search-hint" class="hint">输入至少 2 个字符开始搜索</p>
+    </section>
+
+    <main id="results" class="results" hidden>
+      <section class="card time-card">
+        <h2>当地时间</h2>
+        <div id="time-display" class="time-display"></div>
+        <p id="timezone-info" class="timezone-info"></p>
+      </section>
+
+      <section class="card current-card">
+        <h2>当前天气</h2>
+        <div id="current-weather" class="current-weather"></div>
+      </section>
+
+      <section class="card forecast-card">
+        <h2>未来一周预报</h2>
+        <div id="forecast-list" class="forecast-list"></div>
+      </section>
+    </main>
+
+    <div id="loading" class="loading" hidden>
+      <span class="spinner"></span>
+      <p>正在加载...</p>
+    </div>
+
+    <div id="error" class="error" hidden></div>
+  </div>
+
+  <script>
+(function(){
+var GEOCODING_URL='https://geocoding-api.open-meteo.com/v1/search';
+var WEATHER_URL='https://api.open-meteo.com/v1/forecast';
+var WEATHER_CODES={0:'晴',1:'大部晴朗',2:'局部多云',3:'多云',45:'雾',48:'雾凇',51:'毛毛雨',53:'毛毛雨',55:'毛毛雨',61:'小雨',63:'中雨',65:'大雨',66:'冻雨',67:'冻雨',71:'小雪',73:'中雪',75:'大雪',77:'雪粒',80:'阵雨',81:'阵雨',82:'暴雨',85:'阵雪',86:'阵雪',95:'雷暴',96:'雷暴伴小冰雹',99:'雷暴伴大冰雹'};
+
+var cityInput=document.getElementById('city-input');
+var cityDropdown=document.getElementById('city-dropdown');
+var results=document.getElementById('results');
+var loading=document.getElementById('loading');
+var errorEl=document.getElementById('error');
+var searchHint=document.getElementById('search-hint');
+var timeDisplay=document.getElementById('time-display');
+var timezoneInfo=document.getElementById('timezone-info');
+var currentWeather=document.getElementById('current-weather');
+var forecastList=document.getElementById('forecast-list');
+
+var debounceTimer=null,selectedIndex=-1,cityResults=[];
+
+function escapeHtml(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+cityInput.addEventListener('input',function(){
+  clearTimeout(debounceTimer);
+  var q=cityInput.value.trim();
+  if(q.length<2){hideDropdown();searchHint.textContent='输入至少 2 个字符开始搜索';return;}
+  searchHint.textContent='搜索中...';
+  debounceTimer=setTimeout(function(){searchCities(q);},300);
+});
+
+cityInput.addEventListener('focus',function(){
+  if(cityResults.length>0&&cityInput.value.trim().length>=2)showDropdown(cityResults);
+});
+
+cityInput.addEventListener('keydown',function(e){
+  if(!cityDropdown.hasAttribute('aria-hidden')){
+    if(e.key==='ArrowDown'){e.preventDefault();selectedIndex=Math.min(selectedIndex+1,cityResults.length-1);updateSelection();}
+    else if(e.key==='ArrowUp'){e.preventDefault();selectedIndex=Math.max(selectedIndex-1,0);updateSelection();}
+    else if(e.key==='Enter'){e.preventDefault();if(selectedIndex>=0&&cityResults[selectedIndex])selectCity(cityResults[selectedIndex]);}
+    else if(e.key==='Escape')hideDropdown();
+  }
+});
+
+document.addEventListener('click',function(e){if(!e.target.closest('.search-box'))hideDropdown();});
+
+async function searchCities(query){
+  try{
+    var res=await fetch(GEOCODING_URL+'?name='+encodeURIComponent(query)+'&count=10&language=zh');
+    var data=await res.json();
+    if(!res.ok)throw new Error('搜索失败');
+    if(!data.results||data.results.length===0){searchHint.textContent='未找到匹配的城市';cityResults=[];hideDropdown();return;}
+    cityResults=data.results;
+    searchHint.textContent='找到 '+cityResults.length+' 个结果，点击或回车选择';
+    showDropdown(cityResults);
+    selectedIndex=0;
+    updateSelection();
+  }catch(err){searchHint.textContent='搜索出错，请检查网络';cityResults=[];hideDropdown();}
+}
+
+function showDropdown(cities){
+  cityDropdown.innerHTML=cities.map(function(c,i){
+    return '<li data-index="'+i+'" role="option" aria-selected="'+(i===selectedIndex)+'"><span class="city-name">'+escapeHtml(c.name)+'</span><span class="city-detail">'+escapeHtml(c.country||'')+(c.admin1?', '+escapeHtml(c.admin1):'')+'</span></li>';
+  }).join('');
+  cityDropdown.removeAttribute('aria-hidden');
+  cityDropdown.querySelectorAll('li').forEach(function(li,i){li.addEventListener('click',function(){selectCity(cities[i]);});});
+}
+
+function updateSelection(){
+  cityDropdown.querySelectorAll('li').forEach(function(li,i){
+    li.setAttribute('aria-selected',i===selectedIndex);
+    if(i===selectedIndex)li.scrollIntoView({block:'nearest'});
+  });
+}
+
+function hideDropdown(){
+  cityDropdown.innerHTML='';
+  cityDropdown.setAttribute('aria-hidden','true');
+  selectedIndex=-1;
+}
+
+function selectCity(city){
+  cityInput.value=city.name+(city.admin1?', '+city.admin1:'')+' ('+(city.country||'')+')';
+  hideDropdown();
+  searchHint.textContent='正在加载...';
+  loadWeatherAndTime(city);
+}
+
+async function loadWeatherAndTime(city){
+  loading.hidden=false;
+  errorEl.hidden=true;
+  results.hidden=true;
+  try{
+    var params='latitude='+city.latitude+'&longitude='+city.longitude+'&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=7';
+    var res=await fetch(WEATHER_URL+'?'+params);
+    var data=await res.json();
+    if(!res.ok)throw new Error(data.reason||'获取天气失败');
+    renderTime(data);
+    renderCurrentWeather(data);
+    renderForecast(data);
+    results.hidden=false;
+    searchHint.textContent='已显示 '+city.name+' 的天气，可继续搜索其他城市';
+  }catch(err){
+    errorEl.textContent=err.message||'加载失败，请重试';
+    errorEl.hidden=false;
+    searchHint.textContent='输入城市名称搜索';
+  }
+  loading.hidden=true;
+}
+
+function renderTime(data){
+  var tz=data.timezone||'UTC';
+  var now=new Date();
+  var formatter=new Intl.DateTimeFormat('zh-CN',{timeZone:tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  var dateFormatter=new Intl.DateTimeFormat('zh-CN',{timeZone:tz,weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  timeDisplay.textContent=formatter.format(now);
+  timezoneInfo.textContent=dateFormatter.format(now)+' · '+tz;
+  clearInterval(window._timeInterval);
+  window._timeInterval=setInterval(function(){timeDisplay.textContent=formatter.format(new Date());},1000);
+}
+
+function renderCurrentWeather(data){
+  var c=data.current;
+  var desc=WEATHER_CODES[c.weather_code]||'未知';
+  currentWeather.innerHTML='<div><div class="temp-main">'+Math.round(c.temperature_2m)+'<sup>°C</sup></div><div class="desc">'+desc+'</div><div class="details"><span>体感 '+Math.round(c.apparent_temperature)+'°C</span><span>湿度 '+c.relative_humidity_2m+'%</span><span>风速 '+c.wind_speed_10m+' km/h</span></div></div>';
+}
+
+function renderForecast(data){
+  var daily=data.daily;
+  var tz=data.timezone||'UTC';
+  var dayFormatter=new Intl.DateTimeFormat('zh-CN',{timeZone:tz,weekday:'short'});
+  var dateFormatter=new Intl.DateTimeFormat('zh-CN',{timeZone:tz,month:'short',day:'numeric'});
+  forecastList.innerHTML=daily.time.map(function(dateStr,i){
+    var d=new Date(dateStr);
+    var desc=WEATHER_CODES[daily.weather_code[i]]||'未知';
+    return '<div class="forecast-item"><div><div class="day">'+dayFormatter.format(d)+'</div><div class="date">'+dateFormatter.format(d)+'</div></div><div class="weather-desc">'+desc+'</div><div class="temps"><span class="temp-max">'+Math.round(daily.temperature_2m_max[i])+'°</span><span class="temp-min">'+Math.round(daily.temperature_2m_min[i])+'°</span></div></div>';
+  }).join('');
+}
+})();
+  </script>
+</body>
+</html>

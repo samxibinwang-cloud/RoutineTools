@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>城市时间与天气查询</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>城市时间与天气</h1>
+      <p class="subtitle">输入城市名称，查看当地时间和未来一周天气</p>
+    </header>
+
+    <section class="search-section">
+      <div class="search-box">
+        <input
+          type="text"
+          id="city-input"
+          placeholder="输入城市名称...（如：北京、上海、Tokyo）"
+          autocomplete="off"
+        >
+        <ul id="city-dropdown" class="dropdown" aria-hidden="true"></ul>
+      </div>
+      <p id="search-hint" class="hint">输入至少 2 个字符开始搜索</p>
+    </section>
+
+    <main id="results" class="results" hidden>
+      <section class="card time-card">
+        <h2>当地时间</h2>
+        <div id="time-display" class="time-display"></div>
+        <p id="timezone-info" class="timezone-info"></p>
+      </section>
+
+      <section class="card current-card">
+        <h2>当前天气</h2>
+        <div id="current-weather" class="current-weather"></div>
+      </section>
+
+      <section class="card forecast-card">
+        <h2>未来一周预报</h2>
+        <div id="forecast-list" class="forecast-list"></div>
+      </section>
+    </main>
+
+    <div id="loading" class="loading" hidden>
+      <span class="spinner"></span>
+      <p>正在加载...</p>
+    </div>
+
+    <div id="error" class="error" hidden></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

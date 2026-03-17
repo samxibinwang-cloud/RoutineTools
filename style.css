@@ -1,0 +1,320 @@
+/* 变量 */
+:root {
+  --bg-dark: #0f172a;
+  --bg-card: #1e293b;
+  --accent: #38bdf8;
+  --accent-dim: #0ea5e9;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --radius: 12px;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-dark);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* 头部 */
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+/* 搜索框 */
+.search-section {
+  margin-bottom: 2rem;
+}
+
+.search-box {
+  position: relative;
+}
+
+#city-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#city-input::placeholder {
+  color: var(--text-muted);
+}
+
+#city-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+/* 下拉列表 */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-height: 240px;
+  overflow-y: auto;
+  list-style: none;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+
+.dropdown:empty,
+.dropdown[aria-hidden="true"] {
+  display: none;
+}
+
+.dropdown li {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dropdown li:last-child {
+  border-bottom: none;
+}
+
+.dropdown li:hover,
+.dropdown li[aria-selected="true"] {
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.dropdown .city-name {
+  font-weight: 500;
+}
+
+.dropdown .city-detail {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* 结果区域 */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.card h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 时间卡片 */
+.time-display {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.timezone-info {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+/* 当前天气 */
+.current-weather {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.current-weather .temp-main {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.current-weather .temp-main sup {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.current-weather .desc {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.current-weather .details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* 一周预报 */
+.forecast-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.forecast-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.forecast-item:last-child {
+  border-bottom: none;
+}
+
+.forecast-item .day {
+  font-weight: 500;
+}
+
+.forecast-item .date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.forecast-item .temps {
+  font-variant-numeric: tabular-nums;
+}
+
+.forecast-item .temp-max {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.forecast-item .temp-min {
+  color: var(--text-muted);
+  margin-left: 0.25rem;
+}
+
+/* 天气描述 */
+.weather-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  min-width: 4em;
+  text-align: right;
+}
+
+/* 加载与错误 */
+.loading,
+.error {
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading {
+  color: var(--text-muted);
+}
+
+.loading .spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 0.75rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: var(--radius);
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+  .app {
+    padding: 1.25rem 1rem;
+  }
+
+  .time-display {
+    font-size: 1.5rem;
+  }
+
+  .current-weather .temp-main {
+    font-size: 2rem;
+  }
+
+  .forecast-item {
+    grid-template-columns: 1fr auto;
+    font-size: 0.9rem;
+  }
+
+  .forecast-item .weather-desc {
+    grid-column: 1;
+    text-align: left;
+  }
+}
